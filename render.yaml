@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: uno-multijugador
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 20

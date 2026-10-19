@@ -1,0 +1,14 @@
+{
+  "name": "uno-multijugador",
+  "version": "1.0.0",
+  "description": "Juego de UNO multijugador: local (mismo dispositivo) y en línea con código de sala",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test-engine.js"
+  },
+  "license": "MIT"
+}
