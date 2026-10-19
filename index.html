@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>UNO Multijugador</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23e02b22'/%3E%3Cellipse cx='32' cy='32' rx='24' ry='17' fill='white' transform='rotate(-20 32 32)'/%3E%3Ctext x='32' y='41' font-size='24' font-weight='900' font-style='italic' font-family='Arial' fill='%23e02b22' text-anchor='middle'%3E7%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <!-- ============ MENÚ PRINCIPAL ============ -->
+  <div id="view-menu" class="view">
+    <div class="menu-hero">
+      <div class="logo-card" aria-hidden="true">
+        <div class="logo-oval">
+          <span class="logo-text">UNO</span>
+        </div>
+      </div>
+      <h1>UNO <span class="accent">Multijugador</span></h1>
+      <p class="tagline">El clásico juego de cartas · 2 a 6 jugadores</p>
+
+      <div class="menu-buttons">
+        <button class="btn btn-primary btn-big" id="btn-go-local">🎮 Jugar en local</button>
+        <button class="btn btn-blue btn-big" id="btn-go-create">🌐 Crear sala en línea</button>
+        <button class="btn btn-green btn-big" id="btn-go-join">🔑 Unirse con código</button>
+        <button class="btn btn-ghost" id="btn-rules-menu">📖 ¿Cómo se juega?</button>
+      </div>
+
+      <div class="menu-badges">
+        <span class="badge-pill">Reglas clásicas</span>
+        <span class="badge-pill">+2 / +4 acumulables</span>
+        <span class="badge-pill">¡Grita UNO!</span>
+        <span class="badge-pill">Hasta 6 jugadores</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CONFIGURACIÓN LOCAL ============ -->
+  <div id="view-local" class="view hidden">
+    <div class="panel">
+      <button class="btn-back" data-back>← Volver</button>
+      <h2>🎮 Partida local</h2>
+      <p class="hint">Todos los jugadores comparten este dispositivo. Se turnan y pasan la pantalla.</p>
+
+      <label class="field">
+        <span>Número de jugadores</span>
+        <div class="segmented" id="local-count">
+          <button data-n="2" class="seg active">2</button>
+          <button data-n="3" class="seg">3</button>
+          <button data-n="4" class="seg">4</button>
+          <button data-n="5" class="seg">5</button>
+          <button data-n="6" class="seg">6</button>
+        </div>
+      </label>
+
+      <div class="field">
+        <span>Nombres</span>
+        <div id="local-names" class="names-grid"></div>
+      </div>
+
+      <button class="btn btn-primary btn-big" id="btn-start-local">🃏 ¡Repartir cartas!</button>
+    </div>
+  </div>
+
+  <!-- ============ CREAR SALA ============ -->
+  <div id="view-create" class="view hidden">
+    <div class="panel">
+      <button class="btn-back" data-back>← Volver</button>
+      <h2>🌐 Crear sala en línea</h2>
+      <p class="hint">Comparte el código con tus amigos para que se unan desde su dispositivo.</p>
+      <label class="field">
+        <span>Tu nombre</span>
+        <input id="create-name" type="text" maxlength="20" placeholder="Ej. Ana" autocomplete="off" />
+      </label>
+      <button class="btn btn-blue btn-big" id="btn-create-room">Crear sala</button>
+    </div>
+  </div>
+
+  <!-- ============ UNIRSE ============ -->
+  <div id="view-join" class="view hidden">
+    <div class="panel">
+      <button class="btn-back" data-back>← Volver</button>
+      <h2>🔑 Unirse a una sala</h2>
+      <label class="field">
+        <span>Código de la sala</span>
+        <input id="join-code" type="text" maxlength="5" placeholder="Ej. K7M2P" autocomplete="off" class="code-input" />
+      </label>
+      <label class="field">
+        <span>Tu nombre</span>
+        <input id="join-name" type="text" maxlength="20" placeholder="Ej. Luis" autocomplete="off" />
+      </label>
+      <button class="btn btn-green btn-big" id="btn-join-room">Unirme</button>
+    </div>
+  </div>
+
+  <!-- ============ SALA (LOBBY) ============ -->
+  <div id="view-lobby" class="view hidden">
+    <div class="panel lobby-panel">
+      <h2>Sala <span class="room-code" id="lobby-code">·····</span></h2>
+      <p class="hint">Comparte este código para invitar jugadores:</p>
+      <div class="share-code" id="lobby-share">·····</div>
+      <button class="btn btn-ghost btn-small" id="btn-copy-code">📋 Copiar código</button>
+
+      <h3>Jugadores en la sala</h3>
+      <ul id="lobby-players" class="player-list"></ul>
+      <p class="hint" id="lobby-waiting">Esperando a que el anfitrión inicie la partida…</p>
+      <button class="btn btn-primary btn-big hidden" id="btn-start-online">🃏 Iniciar partida</button>
+      <button class="btn btn-ghost" id="btn-leave-lobby">Salir de la sala</button>
+    </div>
+  </div>
+
+  <!-- ============ MESA DE JUEGO ============ -->
+  <div id="view-game" class="view hidden">
+    <header class="game-header">
+      <div class="brand-mini">
+        <div class="logo-mini"><span>UNO</span></div>
+        <span class="room-tag" id="game-room-tag">LOCAL</span>
+      </div>
+      <div class="scoreboard" id="scoreboard"></div>
+      <div class="header-actions">
+        <button class="btn btn-ghost btn-small" id="btn-rules-game" title="Reglas">📖</button>
+        <button class="btn btn-ghost btn-small" id="btn-sound" title="Sonido">🔊</button>
+        <button class="btn btn-ghost btn-small" id="btn-leave-game" title="Salir">✕</button>
+      </div>
+    </header>
+
+    <div class="table-felt">
+      <div class="opponents" id="opponents"></div>
+
+      <div class="table-center">
+        <div class="turn-banner" id="turn-banner"></div>
+        <div class="piles">
+          <div class="pile-wrap">
+            <div class="card back deck-card" id="deck-pile" title="Robar carta">
+              <div class="card-back-inner"><span>UNO</span></div>
+            </div>
+            <div class="pile-count" id="deck-count">0</div>
+          </div>
+          <div class="pile-wrap">
+            <div id="discard-pile" class="discard-slot"></div>
+            <div class="pile-label" id="discard-label">Mesa</div>
+          </div>
+          <div class="color-indicator" id="color-indicator" title="Color activo"></div>
+        </div>
+        <div class="draw-banner hidden" id="draw-banner"></div>
+        <div class="uno-banner hidden" id="uno-banner"></div>
+      </div>
+
+      <div class="my-area">
+        <div class="my-name-row">
+          <span id="my-name">Tú</span>
+          <span class="turn-dot hidden" id="my-turn-dot">Tu turno</span>
+        </div>
+        <div class="my-hand" id="my-hand"></div>
+        <div class="action-row">
+          <button class="btn btn-yellow btn-big pulse hidden" id="btn-uno">¡UNO!</button>
+          <button class="btn btn-red btn-big hidden" id="btn-catch">🖐 ¡Atrapar!</button>
+          <button class="btn btn-blue hidden" id="btn-draw">🎲 Robar carta</button>
+          <button class="btn btn-ghost hidden" id="btn-pass">Pasar ➜</button>
+        </div>
+      </div>
+
+      <aside class="game-log" id="game-log">
+        <div class="log-title">📜 Jugadas</div>
+        <div class="log-entries" id="log-entries"></div>
+      </aside>
+    </div>
+
+    <!-- Pantalla de fin de ronda -->
+    <div class="overlay hidden" id="overlay-round">
+      <div class="overlay-card">
+        <h2 id="round-title">¡Ronda terminada!</h2>
+        <div id="round-scores" class="round-scores"></div>
+        <button class="btn btn-primary btn-big" id="btn-next-round">🔁 Otra ronda</button>
+        <button class="btn btn-ghost" id="btn-exit-round">Salir al menú</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PASAR DISPOSITIVO (local) ============ -->
+  <div class="overlay hidden" id="overlay-pass">
+    <div class="overlay-card">
+      <div class="pass-icon">📱</div>
+      <h2 id="pass-title">Pasa el dispositivo</h2>
+      <p class="hint" id="pass-sub">Cuando estés listo, toca el botón para ver tus cartas.</p>
+      <button class="btn btn-primary btn-big" id="btn-pass-ready">Listo, soy yo 👋</button>
+    </div>
+  </div>
+
+  <!-- ============ ELEGIR COLOR ============ -->
+  <div class="overlay hidden" id="overlay-color">
+    <div class="overlay-card">
+      <h2>Elige el color</h2>
+      <div class="color-picker">
+        <button class="color-btn" data-color="red" style="--c:#e02b22">Rojo</button>
+        <button class="color-btn" data-color="yellow" style="--c:#f5bd02">Amarillo</button>
+        <button class="color-btn" data-color="green" style="--c:#22a447">Verde</button>
+        <button class="color-btn" data-color="blue" style="--c:#1667d9">Azul</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ REGLAS ============ -->
+  <div class="overlay hidden" id="overlay-rules">
+    <div class="overlay-card rules-card">
+      <h2>📖 Reglas clásicas</h2>
+      <div class="rules-scroll">
+        <h3>Objetivo</h3>
+        <p>Sé el primero en quedarte sin cartas. Al final de la ronda, el ganador suma los puntos de las cartas que dejaron los demás.</p>
+        <h3>En tu turno</h3>
+        <p>Juega una carta que coincida con el <b>color</b>, el <b>número</b> o el <b>símbolo</b> de la carta de la mesa. También puedes jugar un <b>Comodín</b> en cualquier momento, o robar una carta del mazo (si se puede jugar, puedes lanzarla de inmediato).</p>
+        <h3>Cartas de acción</h3>
+        <ul>
+          <li><b>Prohibido (⊘)</b>: el siguiente jugador pierde su turno.</li>
+          <li><b>Reversa (⇄)</b>: invierte el sentido del juego (con 2 jugadores funciona como Prohibido).</li>
+          <li><b>+2</b>: el siguiente roba 2 cartas y pierde su turno.</li>
+          <li><b>Comodín</b>: eliges el nuevo color.</li>
+          <li><b>Comodín +4</b>: eliges color y el siguiente roba 4 cartas.</li>
+        </ul>
+        <h3>Acumulación (+2 / +4)</h3>
+        <p>Si te cae un <b>+2</b> o un <b>+4</b>, puedes responder con otro <b>+2</b> o <b>+4</b> y pasar la suma al siguiente jugador. Si no tienes (o no quieres), <b>roba toda la suma acumulada</b> y pierdes el turno.</p>
+        <h3>¡UNO!</h3>
+        <p>Cuando te quede <b>una sola carta</b>, debes pulsar <b>¡UNO!</b> antes de que se acabe el tiempo. Si no lo haces y otro jugador te atrapa (o se acaba la cuenta), <b>robas 2 cartas</b>.</p>
+        <h3>Puntuación</h3>
+        <ul>
+          <li>Cartas de número: su valor.</li>
+          <li>Prohibido, Reversa, +2: 20 puntos.</li>
+          <li>Comodín y Comodín +4: 50 puntos.</li>
+        </ul>
+        <h3>Ganar la partida</h3>
+        <p>Juega rondas acumulando puntos. Puedes lanzar otra ronda cuando quieras.</p>
+      </div>
+      <button class="btn btn-primary" id="btn-close-rules">Entendido</button>
+    </div>
+  </div>
+
+  <!-- ============ AVISOS ============ -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
